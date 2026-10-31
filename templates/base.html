@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7f5"><title>{% block title %}Memzo{% endblock %} · Memzo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% if current_user.is_authenticated and current_user.role != 'customer' %}app-shell{% endif %}">
+{% if current_user.is_authenticated and current_user.role in ['admin','staff'] %}
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">m</span><span>memzo<span class="brand-dot">.</span></span></a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav class="side-nav">
+    {% if current_user.role == 'admin' %}
+      <a href="{{ url_for('admin_dashboard') }}">◫ <span>Overview</span></a>
+      <a href="{{ url_for('admin_section', section='products') }}">◈ <span>Products</span></a>
+      <a href="{{ url_for('admin_section', section='plans') }}">▤ <span>Plans</span></a>
+      <a href="{{ url_for('admin_section', section='subscriptions') }}">↻ <span>Subscriptions</span></a>
+      <a href="{{ url_for('admin_section', section='customers') }}">♧ <span>Customers</span></a>
+      <a href="{{ url_for('admin_section', section='quotations') }}">▧ <span>Quotations</span></a>
+      <a href="{{ url_for('admin_section', section='invoices') }}">▣ <span>Invoices</span></a>
+      <a href="{{ url_for('admin_section', section='payments') }}">↗ <span>Payments</span></a>
+      <a href="{{ url_for('admin_section', section='discounts') }}">％ <span>Discounts</span></a>
+      <a href="{{ url_for('admin_section', section='staff') }}">♙ <span>Team</span></a>
+      <a href="{{ url_for('admin_section', section='reports') }}">⌁ <span>Reports</span></a>
+      <a href="{{ url_for('admin_section', section='settings') }}">⚙ <span>Settings</span></a>
+    {% else %}
+      <a href="{{ url_for('staff_dashboard') }}">◫ <span>Overview</span></a>
+      <a href="{{ url_for('staff_section', section='customers') }}">♧ <span>Customers</span></a>
+      <a href="{{ url_for('staff_section', section='subscriptions') }}">↻ <span>Subscriptions</span></a>
+      <a href="{{ url_for('staff_section', section='quotations') }}">▧ <span>Quotations</span></a>
+      <a href="{{ url_for('staff_section', section='invoices') }}">▣ <span>Invoices</span></a>
+      <a href="{{ url_for('staff_section', section='payments') }}">↗ <span>Payments</span></a>
+      <a href="{{ url_for('staff_section', section='notifications') }}">♢ <span>Notifications{% if unread_count %}<i class="nav-count">{{ unread_count }}</i>{% endif %}</span></a>
+    {% endif %}
+    </nav>
+    <div class="sidebar-bottom"><a href="{{ url_for('profile') }}">◉ <span>My profile</span></a><form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="side-signout">↗ <span>Sign out</span></button></form></div>
+  </aside>
+{% endif %}
+<div class="main-frame {% if current_user.is_authenticated and current_user.role in ['admin','staff'] %}with-sidebar{% endif %}">
+  {% if not (current_user.is_authenticated and current_user.role in ['admin','staff']) %}
+  <header class="topbar"><a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">m</span><span>memzo<span class="brand-dot">.</span></span></a><nav class="public-nav"><a href="{{ url_for('products') }}">Products</a>{% if current_user.is_authenticated %}<a href="{{ url_for('customer_dashboard') }}">My account</a><a href="{{ url_for('customer_section', section='notifications') }}">Notifications{% if unread_count %}<span class="nav-count">{{ unread_count }}</span>{% endif %}</a><form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="link-button">Sign out</button></form>{% else %}<a href="{{ url_for('login') }}">Sign in</a><a class="button button-small" href="{{ url_for('register') }}">Get started <span>↗</span></a>{% endif %}</nav></header>
+  {% else %}
+  <header class="app-topbar"><button class="mobile-menu" id="menuToggle" aria-label="Toggle navigation">☰</button><div class="crumb">{{ current_user.role|title }} <span>/</span> {% block breadcrumb %}Overview{% endblock %}</div><div class="user-chip"><span class="avatar">{{ current_user.name[:1]|upper }}</span><div><strong>{{ current_user.name }}</strong><small>{{ current_user.role|title }}</small></div></div></header>
+  {% endif %}
+  <main class="page-content {% if not current_user.is_authenticated or current_user.role == 'customer' %}public-content{% endif %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="flash {{ category }}" role="status">{{ message }}<button type="button" class="flash-close" aria-label="Dismiss">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer"><span>© {{ now_year if now_year is defined else 2026 }} Memzo</span><span>Subscriptions, made simple.</span></footer>
+</div>
+<script src="{{ url_for('static', filename='js/script.js') }}" defer></script>{% block scripts %}{% endblock %}
+</body></html>
